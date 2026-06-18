@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SBI ATM Simulator</title>
+
+    <style>
+        /* Base Styles & Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Animated Gradient Background */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(-45deg, #0f172a, #1e3a8a, #0d9488, #581c87);
+            background-size: 400% 400%;
+            animation: backgroundShift 15s ease infinite;
+            user-select: none;
+        }
+
+        @keyframes backgroundShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* ATM Machine Container */
+        .atm {
+            width: 450px;
+            height: 680px;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Logo Branding */
+        .logo {
+            text-align: center;
+            color: #f8fafc;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Simple Card & Receipt Slots */
+        .card-slot, .receipt-slot {
+            width: 180px;
+            height: 8px;
+            background: #020617;
+            margin: 0 auto;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* ATM Screen Window */
+        .screen {
+            background: #020813;
+            border: 2px solid #06b6d4;
+            border-radius: 16px;
+            height: 460px;
+            padding: 20px;
+            color: #00ff9d;
+            overflow-y: auto;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .screen h2 {
+            text-align: center;
+            color: #00e5ff;
+            font-size: 20px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .screen p {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        /* Header Date/Time */
+        #datetime {
+            text-align: center;
+            color: #ffffff;
+            margin-bottom: 15px;
+            font-size: 13px;
+            opacity: 0.8;
+            font-weight: 500;
+        }
+
+        /* Form Inputs */
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            margin-top: 10px;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            font-size: 16px;
+            outline: none;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            border-color: #06b6d4;
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.25);
+        }
+
+        /* Action Buttons */
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 12px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #06b6d4, #0284c7);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        /* Main Menu Grid Layout */
+        .action-btns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        /* Balance Sheet UI Card */
+        .balance-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 14px;
+            color: white;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(99, 102, 241, 0.15));
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            margin: 15px 0;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .balance-card h3 {
+            font-size: 14px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .balance-card h1 {
+            font-size: 32px;
+            color: #00ff9d;
+            font-weight: 700;
+        }
+
+        /* Receipt Slip UI */
+        .receipt {
+            background: #f8fafc;
+            color: #0f172a;
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Transaction History Items */
+        .history-item {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .history-type {
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .history-date {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .history-amount {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .history-item.deposit .history-type { color: #00ff9d; }
+        .history-item.withdraw .history-type { color: #ef4444; }
+
+        /* ATM Frame Footer */
+        .footer {
+            text-align: center;
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="atm">
+        <div class="logo">🏦 SBI ATM Simulator</div>
+
+        <div class="card-slot"></div>
+
+        <div class="screen" id="screen">
+            <div id="datetime">Connecting...</div>
+
+            <h2>Welcome</h2>
+            <p>Please enter your ATM PIN</p>
+
+            <input type="password" id="pin" placeholder="Enter PIN" maxlength="4" autofocus onkeydown="if(event.key === 'Enter') login()">
+            <button onclick="login()">LOGIN</button>
+        </div>
+
+        <div class="receipt-slot"></div>
+
+        <div class="footer">
+            Secure Banking System
+        </div>
+    </div>
+
+    <script>
+        // Local Storage State
+        let balance = parseFloat(localStorage.getItem("balance")) || 50000;
+        let transactionHistory = JSON.parse(localStorage.getItem("history")) || [];
+        const correctPin = "1234";
+
+        // Clock Update
+        function updateDateTime() {
+            let now = new Date();
+            let dt = document.getElementById("datetime");
+            if (dt) {
+                dt.innerHTML = now.toLocaleDateString() + " | " + now.toLocaleTimeString();
+            }
+        }
+
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+
+        // Save to LocalStorage
+        function saveData() {
+            localStorage.setItem("balance", balance);
+            localStorage.setItem("history", JSON.stringify(transactionHistory));
+        }
+
+        // Login Handler
+        function login() {
+            let pinInput = document.getElementById("pin");
+            if (!pinInput) return;
+
+            if (pinInput.value === correctPin) {
+                showMenu();
+            } else {
+                alert("Incorrect PIN. Please try again.");
+                pinInput.value = "";
+                pinInput.focus();
+            }
+        }
+
+        // Helper to generate screen header
+        function screenTop(title) {
+            return `
+                <div id="datetime"></div>
+                <h2>${title}</h2>
+            `;
+        }
+
+        // Main Menu View
+        function showMenu() {
+            document.getElementById("screen").innerHTML =
+                screenTop("Main Menu") +
+                `<div class="action-btns">
+                    <button onclick="checkBalance()">Balance</button>
+                    <button onclick="depositScreen()">Deposit</button>
+                    <button onclick="withdrawScreen()">Withdraw</button>
+                    <button onclick="showHistory()">History</button>
+                    <button onclick="printMiniStatement()">Statement</button>
+                    <button onclick="logout()" style="background: linear-gradient(135deg, #ef4444, #b91c1c);">Exit</button>
+                </div>`;
+            updateDateTime();
+        }
+
+        // Balance Inquiry View
+        function checkBalance() {
+            document.getElementById("screen").innerHTML =
+                screenTop("Balance Inquiry") +
+                `<div class="balance-card">
+                    <h3>Available Balance</h3>
+                    <h1>₹${balance.toLocaleString('en-IN')}</h1>
+                </div>
+                <button onclick="showMenu()">Back</button>`;
+            updateDateTime();
+        }
+
+        // Deposit Money Screen
+        function depositScreen() {
+            document.getElementById("screen").innerHTML =
+                screenTop("Deposit Money") +
+                `<p>Enter amount to deposit:</p>
+                <input type="number" id="depositAmount" placeholder="Enter Amount" autofocus onkeydown="if(event.key === 'Enter') deposit()">
+                <button onclick="deposit()">Deposit</button>
+                <button onclick="showMenu()" style="background: #475569;">Back</button>`;
+            
+            updateDateTime();
+            setTimeout(() => {
+                let depAmt = document.getElementById("depositAmount");
+                if (depAmt) depAmt.focus();
+            }, 50);
+        }
+
+        // Process Deposit
+        function deposit() {
+            let amountInput = document.getElementById("depositAmount");
+            if (!amountInput) return;
+            let amount = Number(amountInput.value);
+
+            if (amount <= 0 || isNaN(amount)) {
+                alert("Invalid Amount");
+                return;
+            }
+
+            balance += amount;
+            transactionHistory.push({
+                type: "DEPOSIT",
+                amount: amount,
+                date: new Date().toLocaleString()
+            });
+
+            saveData();
+            generateReceipt("DEPOSIT", amount);
+        }
+
+        // Withdraw Money Screen
+        function withdrawScreen() {
+            document.getElementById("screen").innerHTML =
+                screenTop("Withdraw Money") +
+                `<p>Enter amount to withdraw:</p>
+                <input type="number" id="withdrawAmount" placeholder="Enter Amount" autofocus onkeydown="if(event.key === 'Enter') withdrawMoney()">
+                <button onclick="withdrawMoney()">Withdraw</button>
+                <button onclick="showMenu()" style="background: #475569;">Back</button>`;
+            
+            updateDateTime();
+            setTimeout(() => {
+                let wdrAmt = document.getElementById("withdrawAmount");
+                if (wdrAmt) wdrAmt.focus();
+            }, 50);
+        }
+
+        // Process Withdrawal
+        function withdrawMoney() {
+            let amountInput = document.getElementById("withdrawAmount");
+            if (!amountInput) return;
+            let amount = Number(amountInput.value);
+
+            if (amount <= 0 || isNaN(amount)) {
+                alert("Invalid Amount");
+                return;
+            }
+
+            if (amount > balance) {
+                alert("Insufficient Balance");
+                return;
+            }
+
+            balance -= amount;
+            transactionHistory.push({
+                type: "WITHDRAWAL",
+                amount: amount,
+                date: new Date().toLocaleString()
+            });
+
+            saveData();
+            generateReceipt("WITHDRAWAL", amount);
+        }
+
+        // Generate Transaction Success Receipt Screen
+        function generateReceipt(type, amount) {
+            let now = new Date();
+            document.getElementById("screen").innerHTML =
+                screenTop("Transaction Success") +
+                `<div class="receipt">
+                    === SBI ATM RECEIPT ===<br><br>
+                    Transaction : ${type}<br>
+                    Amount      : ₹${amount.toLocaleString('en-IN')}<br>
+                    Balance     : ₹${balance.toLocaleString('en-IN')}<br><br>
+                    Date        : ${now.toLocaleDateString()}<br>
+                    Time        : ${now.toLocaleTimeString()}<br><br>
+                    Thank You
+                </div>
+                <button onclick="window.print()">Print Receipt</button>
+                <button onclick="showMenu()">New Transaction</button>`;
+            
+            updateDateTime();
+        }
+
+        // Show Transaction History List View
+        function showHistory() {
+            let html = "";
+
+            if (transactionHistory.length === 0) {
+                html = "<p style='text-align: center; margin-top: 20px;'>No Transactions Found</p>";
+            } else {
+                for (let i = transactionHistory.length - 1; i >= 0; i--) {
+                    let item = transactionHistory[i];
+                    let isDeposit = item.type === "DEPOSIT";
+                    html += `
+                        <div class="history-item ${isDeposit ? 'deposit' : 'withdraw'}">
+                            <div class="history-info">
+                                <span class="history-type">${item.type}</span>
+                                <span class="history-date">${item.date}</span>
+                            </div>
+                            <span class="history-amount">${isDeposit ? '+' : '-'} ₹${item.amount.toLocaleString('en-IN')}</span>
+                        </div>
+                    `;
+                }
+            }
+
+            document.getElementById("screen").innerHTML =
+                screenTop("Transaction History") +
+                html +
+                `<button onclick="showMenu()" style="margin-top: 15px;">Back</button>`;
+            
+            updateDateTime();
+        }
+
+        // Print Mini Statement View
+        function printMiniStatement() {
+            let html = `
+                <div class="receipt">
+                    <b>MINI STATEMENT</b><br>
+                    -------------------------<br>
+            `;
+
+            let start = Math.max(transactionHistory.length - 10, 0);
+            for (let i = start; i < transactionHistory.length; i++) {
+                let item = transactionHistory[i];
+                let sign = item.type === "DEPOSIT" ? "+" : "-";
+                html += `${item.type.substring(0, 3)}: ${sign}₹${item.amount} (${item.date.split(',')[0]})<br>`;
+            }
+
+            html += `
+                    -------------------------<br>
+                    Current Bal: ₹${balance.toLocaleString('en-IN')}
+                </div>
+                <button onclick="window.print()">Print Statement</button>
+                <button onclick="showMenu()">Back</button>
+            `;
+
+            document.getElementById("screen").innerHTML =
+                screenTop("Mini Statement") + html;
+            
+            updateDateTime();
+        }
+
+        // Exit/Reload Handler
+        function logout() {
+            location.reload();
+        }
+    </script>
+</body>
+
+</html>
